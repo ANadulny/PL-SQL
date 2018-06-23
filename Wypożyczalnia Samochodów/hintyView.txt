@@ -1,0 +1,645 @@
+-- multiple hash join
+-- 1)
+I)
+Plan hash value: 3550846640
+ 
+---------------------------------------------------------------------------------------
+| Id  | Operation               | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT        |             |  1371 |   166K|    26  (16)| 00:00:01 |
+|   1 |  SORT ORDER BY          |             |  1371 |   166K|    26  (16)| 00:00:01 |
+|*  2 |   HASH JOIN             |             |  1371 |   166K|    25  (12)| 00:00:01 |
+|   3 |    INDEX FAST FULL SCAN | NAME_IDX    |   600 | 12000 |     4   (0)| 00:00:01 |
+|*  4 |    HASH JOIN            |             |  1371 |   139K|    20  (10)| 00:00:01 |
+|   5 |     TABLE ACCESS FULL   | PRACOWNIK   |    50 |   950 |     2   (0)| 00:00:01 |
+|*  6 |     HASH JOIN           |             |  1371 |   113K|    18  (12)| 00:00:01 |
+|*  7 |      HASH JOIN          |             |   134 |  6030 |     8  (13)| 00:00:01 |
+|*  8 |       HASH JOIN         |             |   134 |  3216 |     6  (17)| 00:00:01 |
+|   9 |        TABLE ACCESS FULL| LOKALIZACJA |     5 |    50 |     2   (0)| 00:00:01 |
+|  10 |        TABLE ACCESS FULL| SAMOCHOD    |   134 |  1876 |     3   (0)| 00:00:01 |
+|  11 |       TABLE ACCESS FULL | SAM_MODEL   |    18 |   378 |     2   (0)| 00:00:01 |
+|  12 |      TABLE ACCESS FULL  | TRANSAKCJA  |  1371 | 54840 |     9   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   4 - access("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+   6 - access("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+   7 - access("S"."ID_MODELU"="M"."ID_MODELU")
+   8 - access("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+
+
+II)
+/*+  use_merge(k,t)*/
+
+Plan hash value: 3512317644
+ 
+----------------------------------------------------------------------------------------
+| Id  | Operation                | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT         |             |  1371 |   166K|    27  (19)| 00:00:01 |
+|   1 |  SORT ORDER BY           |             |  1371 |   166K|    27  (19)| 00:00:01 |
+|   2 |   MERGE JOIN             |             |  1371 |   166K|    26  (16)| 00:00:01 |
+|   3 |    SORT JOIN             |             |  1371 |   139K|    21  (15)| 00:00:01 |
+|*  4 |     HASH JOIN            |             |  1371 |   139K|    20  (10)| 00:00:01 |
+|   5 |      TABLE ACCESS FULL   | SAM_MODEL   |    18 |   378 |     2   (0)| 00:00:01 |
+|*  6 |      HASH JOIN           |             |  1371 |   111K|    18  (12)| 00:00:01 |
+|   7 |       TABLE ACCESS FULL  | LOKALIZACJA |     5 |    50 |     2   (0)| 00:00:01 |
+|*  8 |       HASH JOIN          |             |  1371 |    97K|    15   (7)| 00:00:01 |
+|   9 |        TABLE ACCESS FULL | SAMOCHOD    |   134 |  1876 |     3   (0)| 00:00:01 |
+|* 10 |        HASH JOIN         |             |  1371 | 80889 |    12   (9)| 00:00:01 |
+|  11 |         TABLE ACCESS FULL| PRACOWNIK   |    50 |   950 |     2   (0)| 00:00:01 |
+|  12 |         TABLE ACCESS FULL| TRANSAKCJA  |  1371 | 54840 |     9   (0)| 00:00:01 |
+|* 13 |    SORT JOIN             |             |   600 | 12000 |     5  (20)| 00:00:01 |
+|  14 |     INDEX FAST FULL SCAN | NAME_IDX    |   600 | 12000 |     4   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - access("S"."ID_MODELU"="M"."ID_MODELU")
+   6 - access("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+   8 - access("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+  10 - access("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+  13 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+III)
+/*+  use_merge(k,t,s,p,m,l)*/
+Plan hash value: 4107363708
+ 
+------------------------------------------------------------------------------------------------------
+| Id  | Operation                             | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                      |              |  1371 |   166K|    32  (32)| 00:00:01 |
+|   1 |  SORT ORDER BY                        |              |  1371 |   166K|    32  (32)| 00:00:01 |
+|   2 |   MERGE JOIN                          |              |  1371 |   166K|    31  (30)| 00:00:01 |
+|   3 |    SORT JOIN                          |              |  1371 |   139K|    26  (31)| 00:00:01 |
+|   4 |     MERGE JOIN                        |              |  1371 |   139K|    25  (28)| 00:00:01 |
+|   5 |      SORT JOIN                        |              |  1371 |   113K|    22  (28)| 00:00:01 |
+|   6 |       MERGE JOIN                      |              |  1371 |   113K|    21  (24)| 00:00:01 |
+|   7 |        SORT JOIN                      |              |   134 |  6030 |    11  (37)| 00:00:01 |
+|   8 |         MERGE JOIN                    |              |   134 |  6030 |    10  (30)| 00:00:01 |
+|   9 |          SORT JOIN                    |              |   134 |  4690 |     7  (29)| 00:00:01 |
+|  10 |           MERGE JOIN                  |              |   134 |  4690 |     6  (17)| 00:00:01 |
+|  11 |            TABLE ACCESS BY INDEX ROWID| SAM_MODEL    |    18 |   378 |     2   (0)| 00:00:01 |
+|  12 |             INDEX FULL SCAN           | SAM_MODEL_PK |    18 |       |     1   (0)| 00:00:01 |
+|* 13 |            SORT JOIN                  |              |   134 |  1876 |     4  (25)| 00:00:01 |
+|  14 |             TABLE ACCESS FULL         | SAMOCHOD     |   134 |  1876 |     3   (0)| 00:00:01 |
+|* 15 |          SORT JOIN                    |              |     5 |    50 |     3  (34)| 00:00:01 |
+|  16 |           TABLE ACCESS FULL           | LOKALIZACJA  |     5 |    50 |     2   (0)| 00:00:01 |
+|* 17 |        SORT JOIN                      |              |  1371 | 54840 |    10  (10)| 00:00:01 |
+|  18 |         TABLE ACCESS FULL             | TRANSAKCJA   |  1371 | 54840 |     9   (0)| 00:00:01 |
+|* 19 |      SORT JOIN                        |              |    50 |   950 |     3  (34)| 00:00:01 |
+|  20 |       TABLE ACCESS FULL               | PRACOWNIK    |    50 |   950 |     2   (0)| 00:00:01 |
+|* 21 |    SORT JOIN                          |              |   600 | 12000 |     5  (20)| 00:00:01 |
+|  22 |     INDEX FAST FULL SCAN              | NAME_IDX     |   600 | 12000 |     4   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+  13 - access("S"."ID_MODELU"="M"."ID_MODELU")
+       filter("S"."ID_MODELU"="M"."ID_MODELU")
+  15 - access("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+       filter("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+  17 - access("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+       filter("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+  19 - access("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+       filter("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+  21 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+IV)
+/*+  use_nl(k,t)*/
+
+Plan hash value: 3490565628
+ 
+---------------------------------------------------------------------------------------
+| Id  | Operation               | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT        |             |  1371 |   166K|  1392   (1)| 00:00:17 |
+|   1 |  SORT ORDER BY          |             |  1371 |   166K|  1392   (1)| 00:00:17 |
+|   2 |   NESTED LOOPS          |             |  1371 |   166K|  1391   (1)| 00:00:17 |
+|*  3 |    HASH JOIN            |             |  1371 |   139K|    20  (10)| 00:00:01 |
+|   4 |     TABLE ACCESS FULL   | SAM_MODEL   |    18 |   378 |     2   (0)| 00:00:01 |
+|*  5 |     HASH JOIN           |             |  1371 |   111K|    18  (12)| 00:00:01 |
+|   6 |      TABLE ACCESS FULL  | LOKALIZACJA |     5 |    50 |     2   (0)| 00:00:01 |
+|*  7 |      HASH JOIN          |             |  1371 |    97K|    15   (7)| 00:00:01 |
+|   8 |       TABLE ACCESS FULL | SAMOCHOD    |   134 |  1876 |     3   (0)| 00:00:01 |
+|*  9 |       HASH JOIN         |             |  1371 | 80889 |    12   (9)| 00:00:01 |
+|  10 |        TABLE ACCESS FULL| PRACOWNIK   |    50 |   950 |     2   (0)| 00:00:01 |
+|  11 |        TABLE ACCESS FULL| TRANSAKCJA  |  1371 | 54840 |     9   (0)| 00:00:01 |
+|* 12 |    INDEX RANGE SCAN     | NAME_IDX    |     1 |    20 |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - access("S"."ID_MODELU"="M"."ID_MODELU")
+   5 - access("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+   7 - access("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+   9 - access("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+  12 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+V)
+/*+  use_nl(k,t,s,p,m,l)*/
+Plan hash value: 2973573317
+ 
+---------------------------------------------------------------------------------------
+| Id  | Operation               | Name        | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT        |             |  1371 |   166K|  2689   (1)| 00:00:33 |
+|   1 |  SORT ORDER BY          |             |  1371 |   166K|  2689   (1)| 00:00:33 |
+|   2 |   NESTED LOOPS          |             |  1371 |   166K|  2688   (1)| 00:00:33 |
+|   3 |    NESTED LOOPS         |             |  1371 |   139K|  1316   (1)| 00:00:16 |
+|   4 |     NESTED LOOPS        |             |  1371 |   113K|  1050   (1)| 00:00:13 |
+|   5 |      NESTED LOOPS       |             |   134 |  6030 |    38   (0)| 00:00:01 |
+|   6 |       NESTED LOOPS      |             |   134 |  3216 |    10   (0)| 00:00:01 |
+|   7 |        TABLE ACCESS FULL| LOKALIZACJA |     5 |    50 |     2   (0)| 00:00:01 |
+|*  8 |        TABLE ACCESS FULL| SAMOCHOD    |    27 |   378 |     2   (0)| 00:00:01 |
+|*  9 |       TABLE ACCESS FULL | SAM_MODEL   |     1 |    21 |     0   (0)| 00:00:01 |
+|* 10 |      TABLE ACCESS FULL  | TRANSAKCJA  |    10 |   400 |     8   (0)| 00:00:01 |
+|* 11 |     TABLE ACCESS FULL   | PRACOWNIK   |     1 |    19 |     0   (0)| 00:00:01 |
+|* 12 |    INDEX RANGE SCAN     | NAME_IDX    |     1 |    20 |     1   (0)| 00:00:01 |
+---------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   8 - filter("S"."ID_LOKALIZACJI"="L"."ID_LOKALIZACJI")
+   9 - filter("S"."ID_MODELU"="M"."ID_MODELU")
+  10 - filter("T"."NR_REJESTRACYJNY"="S"."NR_REJESTRACYJNY")
+  11 - filter("T"."ID_PRACOWNIKA"="P"."ID_PRACOWNIKA")
+  12 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+
+-- hash join
+-- 2)
+I)
+Plan hash value: 1932666780
+ 
+----------------------------------------------------------------------------------
+| Id  | Operation           | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |            |     1 |   120 |    18  (12)| 00:00:01 |
+|   1 |  SORT ORDER BY      |            |     1 |   120 |    18  (12)| 00:00:01 |
+|*  2 |   HASH JOIN         |            |     1 |   120 |    17   (6)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL| KLIENT     |     1 |    78 |     7   (0)| 00:00:01 |
+|*  4 |    TABLE ACCESS FULL| TRANSAKCJA |   209 |  8778 |     9   (0)| 00:00:01 |
+----------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   3 - filter("K"."IMIE"='Aneta' AND "K"."MIASTO"='Mielno' AND 
+              "K"."RABAT">2 AND "K"."PESEL">=40000000000 AND 
+              "K"."NR_TELEFONU">300000000 AND "K"."PESEL"<=87000000000)
+   4 - filter("T"."ID_PRACOWNIKA">30 AND "T"."ID_TRANSAKCJI"<=600 AND 
+              "T"."ID_TRANSAKCJI">=100)
+
+
+II)
+/*+  use_merge(k,t)*/
+Plan hash value: 1569833571
+ 
+----------------------------------------------------------------------------------
+| Id  | Operation           | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |            |     1 |   120 |    18  (12)| 00:00:01 |
+|   1 |  MERGE JOIN         |            |     1 |   120 |    18  (12)| 00:00:01 |
+|   2 |   SORT JOIN         |            |     1 |    78 |     8  (13)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL| KLIENT     |     1 |    78 |     7   (0)| 00:00:01 |
+|*  4 |   SORT JOIN         |            |   209 |  8778 |    10  (10)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL| TRANSAKCJA |   209 |  8778 |     9   (0)| 00:00:01 |
+----------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("K"."IMIE"='Aneta' AND "K"."MIASTO"='Mielno' AND 
+              "K"."RABAT">2 AND "K"."PESEL">=40000000000 AND 
+              "K"."NR_TELEFONU">300000000 AND "K"."PESEL"<=87000000000)
+   4 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   5 - filter("T"."ID_PRACOWNIKA">30 AND "T"."ID_TRANSAKCJI"<=600 AND 
+              "T"."ID_TRANSAKCJI">=100)
+
+
+III)
+Plan hash value: 3557140907
+ 
+----------------------------------------------------------------------------------
+| Id  | Operation           | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |            |     1 |   120 |    17   (6)| 00:00:01 |
+|   1 |  SORT ORDER BY      |            |     1 |   120 |    17   (6)| 00:00:01 |
+|   2 |   NESTED LOOPS      |            |     1 |   120 |    16   (0)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL| KLIENT     |     1 |    78 |     7   (0)| 00:00:01 |
+|*  4 |    TABLE ACCESS FULL| TRANSAKCJA |     1 |    42 |     9   (0)| 00:00:01 |
+----------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("K"."IMIE"='Aneta' AND "K"."MIASTO"='Mielno' AND 
+              "K"."RABAT">2 AND "K"."PESEL">=40000000000 AND 
+              "K"."NR_TELEFONU">300000000 AND "K"."PESEL"<=87000000000)
+   4 - filter("T"."ID_PRACOWNIKA">30 AND "T"."ID_TRANSAKCJI"<=600 AND 
+              "T"."ID_TRANSAKCJI">=100 AND "K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+-- 3)
+-- hash join
+I)
+Plan hash value: 966734269
+ 
+------------------------------------------------------------------------------------
+| Id  | Operation             | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT      |            |    69 |  4278 |    23   (5)| 00:00:01 |
+|*  1 |  HASH JOIN            |            |    69 |  4278 |    14   (8)| 00:00:01 |
+|*  2 |   TABLE ACCESS FULL   | TRANSAKCJA |    69 |  2898 |     9   (0)| 00:00:01 |
+|   3 |    SORT AGGREGATE     |            |     1 |     5 |            |          |
+|   4 |     TABLE ACCESS FULL | TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|   5 |   INDEX FAST FULL SCAN| NAME_IDX   |   600 | 12000 |     4   (0)| 00:00:01 |
+------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   2 - filter("T"."CENA_TRANSAKCJI"> (SELECT AVG("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+
+
+II)
+/*+  use_merge(k,t)*/
+Plan hash value: 846775916
+ 
+-------------------------------------------------------------------------------------
+| Id  | Operation              | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT       |            |    69 |  4278 |    24   (9)| 00:00:01 |
+|   1 |  MERGE JOIN            |            |    69 |  4278 |    15  (14)| 00:00:01 |
+|   2 |   SORT JOIN            |            |    69 |  2898 |    10  (10)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL   | TRANSAKCJA |    69 |  2898 |     9   (0)| 00:00:01 |
+|   4 |     SORT AGGREGATE     |            |     1 |     5 |            |          |
+|   5 |      TABLE ACCESS FULL | TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|*  6 |   SORT JOIN            |            |   600 | 12000 |     5  (20)| 00:00:01 |
+|   7 |    INDEX FAST FULL SCAN| NAME_IDX   |   600 | 12000 |     4   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("T"."CENA_TRANSAKCJI"> (SELECT AVG("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+   6 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+III)
+/*+  use_nl(k,t)*/ 
+Plan hash value: 1868606533
+ 
+-----------------------------------------------------------------------------------
+| Id  | Operation            | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |            |    69 |  4278 |    87   (0)| 00:00:02 |
+|   1 |  NESTED LOOPS        |            |    69 |  4278 |    78   (0)| 00:00:01 |
+|*  2 |   TABLE ACCESS FULL  | TRANSAKCJA |    69 |  2898 |     9   (0)| 00:00:01 |
+|   3 |    SORT AGGREGATE    |            |     1 |     5 |            |          |
+|   4 |     TABLE ACCESS FULL| TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|*  5 |   INDEX RANGE SCAN   | NAME_IDX   |     1 |    20 |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter("T"."CENA_TRANSAKCJI"> (SELECT AVG("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+   5 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+
+
+-- 4)
+-- merge join
+I)
+
+Plan hash value: 459415042
+ 
+-------------------------------------------------------------------------------------------
+| Id  | Operation                    | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT             |            |     3 |   141 |    13   (8)| 00:00:01 |
+|   1 |  MERGE JOIN                  |            |     3 |   141 |    13   (8)| 00:00:01 |
+|*  2 |   TABLE ACCESS BY INDEX ROWID| KLIENT     |     4 |   140 |     3   (0)| 00:00:01 |
+|*  3 |    INDEX RANGE SCAN          | NAME_IDX2  |    20 |       |     2   (0)| 00:00:01 |
+|*  4 |   SORT JOIN                  |            |    11 |   132 |    10  (10)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL         | TRANSAKCJA |    11 |   132 |     9   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter("K"."NR_TELEFONU"<=500000000 AND "K"."NR_TELEFONU">=340000000)
+   3 - access("K"."ID_KLIENTA">160 AND "K"."PESEL">40000000000 AND 
+              "K"."ID_KLIENTA"<190)
+       filter("K"."PESEL">40000000000)
+   4 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   5 - filter("T"."ID_KLIENTA"<190 AND "T"."ID_KLIENTA">160 AND 
+              "T"."DATA_WYPOZYCZENIA">SYSDATE@!-INTERVAL'+01-00' YEAR(2) TO MONTH)
+
+II)
+
+Plan hash value: 4110193046
+ 
+--------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT              |            |     3 |   141 |    14  (15)| 00:00:01 |
+|   1 |  SORT ORDER BY                |            |     3 |   141 |    14  (15)| 00:00:01 |
+|*  2 |   HASH JOIN                   |            |     3 |   141 |    13   (8)| 00:00:01 |
+|*  3 |    TABLE ACCESS BY INDEX ROWID| KLIENT     |     4 |   140 |     3   (0)| 00:00:01 |
+|*  4 |     INDEX RANGE SCAN          | NAME_IDX2  |    20 |       |     2   (0)| 00:00:01 |
+|*  5 |    TABLE ACCESS FULL          | TRANSAKCJA |    11 |   132 |     9   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   3 - filter("K"."NR_TELEFONU"<=500000000 AND "K"."NR_TELEFONU">=340000000)
+   4 - access("K"."ID_KLIENTA">160 AND "K"."PESEL">40000000000 AND 
+              "K"."ID_KLIENTA"<190)
+       filter("K"."PESEL">40000000000)
+   5 - filter("T"."ID_KLIENTA"<190 AND "T"."ID_KLIENTA">160 AND 
+              "T"."DATA_WYPOZYCZENIA">SYSDATE@!-INTERVAL'+01-00' YEAR(2) TO MONTH)
+
+
+III)
+
+Plan hash value: 2137435091
+ 
+--------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT              |            |     3 |   141 |    21   (5)| 00:00:01 |
+|   1 |  SORT ORDER BY                |            |     3 |   141 |    21   (5)| 00:00:01 |
+|   2 |   NESTED LOOPS                |            |       |       |            |          |
+|   3 |    NESTED LOOPS               |            |     3 |   141 |    20   (0)| 00:00:01 |
+|*  4 |     TABLE ACCESS FULL         | TRANSAKCJA |    11 |   132 |     9   (0)| 00:00:01 |
+|*  5 |     INDEX UNIQUE SCAN         | KLIENCI_PK |     1 |       |     0   (0)| 00:00:01 |
+|*  6 |    TABLE ACCESS BY INDEX ROWID| KLIENT     |     1 |    35 |     1   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("T"."ID_KLIENTA"<190 AND "T"."ID_KLIENTA">160 AND 
+              "T"."DATA_WYPOZYCZENIA">SYSDATE@!-INTERVAL'+01-00' YEAR(2) TO MONTH)
+   5 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"<190 AND "K"."ID_KLIENTA">160)
+   6 - filter("K"."NR_TELEFONU"<=500000000 AND "K"."PESEL">40000000000 AND 
+              "K"."NR_TELEFONU">=340000000)
+
+
+-- 5)
+-- nested join
+I)
+
+Plan hash value: 1868606533
+ 
+-----------------------------------------------------------------------------------
+| Id  | Operation            | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |            |     1 |    62 |    19   (0)| 00:00:01 |
+|   1 |  NESTED LOOPS        |            |     1 |    62 |    10   (0)| 00:00:01 |
+|*  2 |   TABLE ACCESS FULL  | TRANSAKCJA |     1 |    42 |     9   (0)| 00:00:01 |
+|   3 |    SORT AGGREGATE    |            |     1 |     5 |            |          |
+|   4 |     TABLE ACCESS FULL| TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|*  5 |   INDEX RANGE SCAN   | NAME_IDX   |     1 |    20 |     1   (0)| 00:00:01 |
+-----------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - filter("T"."CENA_TRANSAKCJI"= (SELECT MAX("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+   5 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+
+II)
+/*+  use_merge(k,t)*/
+
+Plan hash value: 846775916
+ 
+-------------------------------------------------------------------------------------
+| Id  | Operation              | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT       |            |     1 |    62 |    24   (9)| 00:00:01 |
+|   1 |  MERGE JOIN            |            |     1 |    62 |    15  (14)| 00:00:01 |
+|   2 |   SORT JOIN            |            |     1 |    42 |    10  (10)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL   | TRANSAKCJA |     1 |    42 |     9   (0)| 00:00:01 |
+|   4 |     SORT AGGREGATE     |            |     1 |     5 |            |          |
+|   5 |      TABLE ACCESS FULL | TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|*  6 |   SORT JOIN            |            |   600 | 12000 |     5  (20)| 00:00:01 |
+|   7 |    INDEX FAST FULL SCAN| NAME_IDX   |   600 | 12000 |     4   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("T"."CENA_TRANSAKCJI"= (SELECT MAX("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+   6 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+       filter("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+
+III)
+/*+  use_hash(k,t)*/
+Plan hash value: 966734269
+ 
+------------------------------------------------------------------------------------
+| Id  | Operation             | Name       | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT      |            |     1 |    62 |    23   (5)| 00:00:01 |
+|*  1 |  HASH JOIN            |            |     1 |    62 |    14   (8)| 00:00:01 |
+|*  2 |   TABLE ACCESS FULL   | TRANSAKCJA |     1 |    42 |     9   (0)| 00:00:01 |
+|   3 |    SORT AGGREGATE     |            |     1 |     5 |            |          |
+|   4 |     TABLE ACCESS FULL | TRANSAKCJA |  1371 |  6855 |     9   (0)| 00:00:01 |
+|   5 |   INDEX FAST FULL SCAN| NAME_IDX   |   600 | 12000 |     4   (0)| 00:00:01 |
+------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   1 - access("K"."ID_KLIENTA"="T"."ID_KLIENTA")
+   2 - filter("T"."CENA_TRANSAKCJI"= (SELECT MAX("CENA_TRANSAKCJI") FROM 
+              "TRANSAKCJA" "TRANSAKCJA"))
+
+
+-- 6)
+-- nested loops
+I)
+Plan hash value: 1563504163
+ 
+-------------------------------------------------------------------------------------
+| Id  | Operation           | Name          | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |               |   137 |  5069 |    10  (10)| 00:00:01 |
+|   1 |  SORT ORDER BY      |               |   137 |  5069 |    10  (10)| 00:00:01 |
+|   2 |   NESTED LOOPS      |               |   137 |  5069 |     9   (0)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL| TRANSAKCJA    |   407 | 11803 |     9   (0)| 00:00:01 |
+|*  4 |    INDEX UNIQUE SCAN| SYS_C00633819 |     1 |     8 |     0   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("T"."CENA_TRANSAKCJI">6000 AND 
+              "T"."DATA_ZWROTU"-"T"."DATA_WYPOZYCZENIA">100)
+
+
+II)
+/*+  use_merge(r,t)*/ 
+Plan hash value: 3225720135
+ 
+--------------------------------------------------------------------------------------
+| Id  | Operation            | Name          | Rows  | Bytes | Cost (%CPU)| Time     |
+--------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |               |   137 |  5069 |    12  (17)| 00:00:01 |
+|   1 |  SORT ORDER BY       |               |   137 |  5069 |    12  (17)| 00:00:01 |
+|   2 |   MERGE JOIN         |               |   137 |  5069 |    11  (10)| 00:00:01 |
+|   3 |    INDEX FULL SCAN   | SYS_C00633819 |    44 |   352 |     1   (0)| 00:00:01 |
+|*  4 |    SORT JOIN         |               |   407 | 11803 |    10  (10)| 00:00:01 |
+|*  5 |     TABLE ACCESS FULL| TRANSAKCJA    |   407 | 11803 |     9   (0)| 00:00:01 |
+--------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - access("R"."NR_REJESTRACYJNY"="T"."NR_REJESTRACYJNY")
+       filter("R"."NR_REJESTRACYJNY"="T"."NR_REJESTRACYJNY")
+   5 - filter("T"."CENA_TRANSAKCJI">6000 AND 
+              "T"."DATA_ZWROTU"-"T"."DATA_WYPOZYCZENIA">100)
+
+III)
+/*+  use_hash(r,t)*/ 
+Plan hash value: 2195185487
+ 
+-------------------------------------------------------------------------------------
+| Id  | Operation           | Name          | Rows  | Bytes | Cost (%CPU)| Time     |
+-------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |               |   137 |  5069 |    12  (17)| 00:00:01 |
+|   1 |  SORT ORDER BY      |               |   137 |  5069 |    12  (17)| 00:00:01 |
+|*  2 |   HASH JOIN         |               |   137 |  5069 |    11  (10)| 00:00:01 |
+|   3 |    INDEX FULL SCAN  | SYS_C00633819 |    44 |   352 |     1   (0)| 00:00:01 |
+|*  4 |    TABLE ACCESS FULL| TRANSAKCJA    |   407 | 11803 |     9   (0)| 00:00:01 |
+-------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("R"."NR_REJESTRACYJNY"="T"."NR_REJESTRACYJNY")
+   4 - filter("T"."CENA_TRANSAKCJI">6000 AND 
+              "T"."DATA_ZWROTU"-"T"."DATA_WYPOZYCZENIA">100)
+
+
+
+-- 7)
+-- nested loops
+I)
+Plan hash value: 652386001
+ 
+----------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT              |              |     1 |    21 |     5  (20)| 00:00:01 |
+|   1 |  SORT ORDER BY                |              |     1 |    21 |     5  (20)| 00:00:01 |
+|   2 |   NESTED LOOPS                |              |       |       |            |          |
+|   3 |    NESTED LOOPS               |              |     1 |    21 |     4   (0)| 00:00:01 |
+|*  4 |     TABLE ACCESS FULL         | SAMOCHOD     |     1 |    15 |     3   (0)| 00:00:01 |
+|*  5 |     INDEX UNIQUE SCAN         | SAM_MODEL_PK |     1 |       |     0   (0)| 00:00:01 |
+|*  6 |    TABLE ACCESS BY INDEX ROWID| SAM_MODEL    |     1 |     6 |     1   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   4 - filter("S"."ID_MODELU">25 AND "S"."CENA_ZA_DOBE">90)
+   5 - access("S"."ID_MODELU"="M"."ID_MODELU")
+       filter("M"."ID_MODELU">25)
+   6 - filter("M"."KLASA_SAM"='A' OR "M"."KLASA_SAM"='D')
+
+II)
+/*+  use_hash(s,m)*/ 
+Plan hash value: 653435049
+ 
+---------------------------------------------------------------------------------
+| Id  | Operation           | Name      | Rows  | Bytes | Cost (%CPU)| Time     |
+---------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT    |           |     1 |    21 |     7  (29)| 00:00:01 |
+|   1 |  SORT ORDER BY      |           |     1 |    21 |     7  (29)| 00:00:01 |
+|*  2 |   HASH JOIN         |           |     1 |    21 |     6  (17)| 00:00:01 |
+|*  3 |    TABLE ACCESS FULL| SAM_MODEL |     1 |     6 |     2   (0)| 00:00:01 |
+|*  4 |    TABLE ACCESS FULL| SAMOCHOD  |     1 |    15 |     3   (0)| 00:00:01 |
+---------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   2 - access("S"."ID_MODELU"="M"."ID_MODELU")
+   3 - filter("M"."ID_MODELU">25 AND ("M"."KLASA_SAM"='A' OR 
+              "M"."KLASA_SAM"='D'))
+   4 - filter("S"."ID_MODELU">25 AND "S"."CENA_ZA_DOBE">90)
+
+
+III)
+/*+  use_merge(s,m)*/ 
+Plan hash value: 716579187
+ 
+----------------------------------------------------------------------------------------------
+| Id  | Operation                     | Name         | Rows  | Bytes | Cost (%CPU)| Time     |
+----------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT              |              |     1 |    21 |     7  (29)| 00:00:01 |
+|   1 |  SORT ORDER BY                |              |     1 |    21 |     7  (29)| 00:00:01 |
+|   2 |   MERGE JOIN                  |              |     1 |    21 |     6  (17)| 00:00:01 |
+|*  3 |    TABLE ACCESS BY INDEX ROWID| SAM_MODEL    |     1 |     6 |     2   (0)| 00:00:01 |
+|*  4 |     INDEX RANGE SCAN          | SAM_MODEL_PK |     1 |       |     1   (0)| 00:00:01 |
+|*  5 |    SORT JOIN                  |              |     1 |    15 |     4  (25)| 00:00:01 |
+|*  6 |     TABLE ACCESS FULL         | SAMOCHOD     |     1 |    15 |     3   (0)| 00:00:01 |
+----------------------------------------------------------------------------------------------
+ 
+Predicate Information (identified by operation id):
+---------------------------------------------------
+ 
+   3 - filter("M"."KLASA_SAM"='A' OR "M"."KLASA_SAM"='D')
+   4 - access("M"."ID_MODELU">25)
+   5 - access("S"."ID_MODELU"="M"."ID_MODELU")
+       filter("S"."ID_MODELU"="M"."ID_MODELU")
+   6 - filter("S"."ID_MODELU">25 AND "S"."CENA_ZA_DOBE">90)
+
+
+
+
+///////////////////////////////////////	   KOMENTARZ	//////////////////////////////////////////
+
+W zale¿noœci jakie tablice ³¹czymy ze sob¹ to z mo¿liwych trzech typów merge join, hash join, 
+nested loop, podczas naturalnego ³¹czenia tablic wybierany jest tylko jeden z nich, bêd¹cy najefektywniejszym.
+Niestety nie uda³o mi siê w naturalny sposób bez pomocy hintów uzyskaæ wiêcej merge joinów.
+Jednak¿e, z tych danych które uzyska³em mo¿na stwierdziæ, ¿e nested loop najlepiej sprawdza siê dla po³¹czenia 
+tabeli zawieraj¹cej ma³o rekordów z tabel¹, gdzie tych rekodrów jest znacz¹ca liczba. Wtedy za pomoc¹
+hintów mo¿na uzyskaæ po³¹czenie hash join lub merge join, jednak¿e wtedy koszt zu¿ycia procesora jest znacz¹co wiêkszy 
+lub czas wykonywania jest d³u¿szy. Zatem rezygnujemy wtedy z rozwi¹zania optymalnego.
+Podobnie jest przy stosowaniu hintów dla rozwi¹zañ, gdzie w naturalny sposób uzyskaliœmy merge join lub hash join.
+Hash join najczêœciej wystêpowa³ w sytuacjach, kiedy ³¹czone by³y ze sob¹ tabele zawieraj¹ce du¿o rekordów, a
+merge join uzyska³em stosuj¹c sortowanie order by po kluczu g³ównym i u¿ywaj¹c wielu zapytañ.
+

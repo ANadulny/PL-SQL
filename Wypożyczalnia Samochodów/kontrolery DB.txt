@@ -1,0 +1,211 @@
+create or replace PROCEDURE NOWI_PRACOWNICY IS 
+    
+        TYPE TABSTR IS TABLE OF VARCHAR2(250);
+        iter NUMBER(5);
+        imie TABSTR;
+        nazwisko TABSTR;
+        telefon NUMBER(9);
+
+BEGIN
+        imie := TABSTR('Tomek','Bartek','Kamilk','Malgorzata','Aida','Szymon','Katarzyna','Ola','Judyta','Jedrek',
+					   'Kacper','Marta','Aleksandra','Wiktor','Slawek','Michalina','Mateusz','Hubert','Olaf','Samuel'); --20
+        nazwisko := TABSTR('Koliber','Wierter','Molik','Garbat','Kamisz','Sokol','Kowal','Berenda','Radzil','Kosmyk',
+						   'Tomkowiec','Zygu','Staszow','Rokit','Odoran','Lomuel','Wernyhora','Rabarbar','Warka','Kociol'); --20
+        iter := 50;
+        FOR i IN 1..iter LOOP
+            
+            telefon := dbms_random.value(100000000,999999999);
+            
+            INSERT INTO Pracownik VALUES (NULL,(SELECT Id_lokalizacji FROM (SELECT * FROM Lokalizacja ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1), imie(dbms_random.value(1,20)),nazwisko(dbms_random.value(1,20)),telefon);
+        END LOOP;
+        
+END NOWI_PRACOWNICY;
+
+
+
+
+create or replace PROCEDURE NOWE_SAMOCHODY IS 
+    TYPE TABINT IS TABLE OF integer;
+    TYPE TABSTR IS TABLE OF varchar2(250);
+    nr_rejestr TABSTR;
+    year NUMBER(4);
+    startday NUMBER(5);
+	dates VARCHAR2(10);
+    cena TABINT;
+    kolor TABSTR;
+    iter NUMBER(5);
+    --w status podac mozliwosci zarezerwowany, wolny, zajety, uzywany
+--	wolny nie jest ani zarezerwowany, ani obecnie uzywany
+--	zarezerwowany jest tylko dokonana rezerwacja na niego i nie jest on obecnie uzywany
+--	zajety jest obecnie uzywany i zarezerwowany
+--	uzywany jest obecnie uzywany ale nie ma na niego rezerwacji 
+	
+BEGIN
+    nr_rejestr := TABSTR( 'AB93331', 'BG35634', 'FC24843', 'VF55011', 'PG35441', 'FD86423', 'VD40964', 'FE46853', 'RF98125', 'FE67964', 'GT36093', 'TA79645', 
+    'GD94094', 'WZ40790', 'WZ13185', 'WZ35055', 'WY47187', 'WY13734', 'WX27276', 'AC27366', 'AV27116', 'GR73607', 'HZ98957', 'BG30297', 'BE29360', 'NG68827', 'HG42437', 
+    'JK02263', 'TGY4373', 'BAK6289', 'GBD3862', 'GRA2189', 'CAT9297', 'CB66907', 'MR29339', 'QI25769', 'VC21417', 'QD19259', 'LK73850', 'BG40680', 'BN43620', 'AF43980', 
+    'QR80385', 'WJ87329', 'WN78520', 'AA11234', 'KE92313', 'WY11234', 'TW30021', 'DJE2091', 'DJE2043', 'DWR9013', 'CCH4324', 'CB44213', 'FSD4530', 'ELC5302', 'EWI7341',
+	'WO37891', 'WPR4321', 'WWE5432', 'OP55453', 'OOL1223', 'RZE5432', 'BSI4402', 'GTC5432', 'SI20012', 'TOS4020',
+    'AB93341', 'BG35134', 'FCZ4843', 'VFG5011', 'PGW5441', 'FDF8423', 'VDI4964', 'FE47813', 'RFO9125', 'FEC6964', 'GTJ3093', 'TAT7645', 
+    'GD46094', 'WZ10399', 'WZ63381', 'WZ95951', 'WY37541', 'WY16664', 'WX13373', 'AC23337', 'AV22516', 'GRO3607', 'HZO9957', 'BG11191', 'BEZ2460', 'NG44847', 'HG42444', 
+    'JK77267', 'TGY7377', 'BAK7287', 'GBD7872', 'GRA2787', 'CAT7797', 'CB64407', 'MR24434', 'QI35363', 'VC66467', 'QD19353', 'LK76657', 'BG35681', 'BN40020', 'AF40901', 
+    'QR50304', 'WJ80309', 'WN78024', 'AA15784', 'KE92572', 'WY79034', 'TW40720', 'DJE6097', 'DJE2562', 'DWR9775', 'CCH6346', 'CB46246', 'FSD4566', 'ELC5552', 'EWI8366',
+	'WO36865', 'WPR4644', 'WWE5455', 'OP25253', 'OOL4243', 'RZE5531', 'BSI4503', 'GTC1402', 'SI24732', 'TOS4931'); 
+    cena := TABINT(50,40,60,99,99,107,149,60,160,99, 119);--11
+    kolor := TABSTR('czarny', 'srebny', 'niebieski','zielony','brazowy','czerwony');--6
+    iter := nr_rejestr.count;
+	FOR i IN 1..iter LOOP
+		year := dbms_random.value(2013,2018);
+		startday := dbms_random.value(1,355);
+		dates := to_char(year) || to_char(startday,'999');
+        
+        
+		INSERT INTO Samochod VALUES (nr_rejestr(i), (SELECT Id_lokalizacji FROM (SELECT * FROM Lokalizacja ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1), 
+        (SELECT Id_modelu FROM (SELECT * FROM Sam_model ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+        to_date(dates,'yyyyddd'),cena(dbms_random.value(1,11)),
+        'wolny', kolor(dbms_random.value(1,6)));
+        
+
+	END LOOP;
+END NOWE_SAMOCHODY;
+
+create or replace PROCEDURE NOWI_KLIENCI IS 
+        
+        TYPE TABSTR IS TABLE OF VARCHAR2(250);
+        TYPE TABINT IS TABLE OF INTEGER;
+        iter NUMBER(5);
+        pomoc INTEGER;
+        imie TABSTR;
+        nazwisko TABSTR;
+        pesel NUMBER(11);
+        telefon NUMBER(9);
+        adres_email TABSTR;
+        miasto TABSTR;
+        kod_pocztowy TABSTR;
+        ulica_zameldowania TABSTR;
+        rabat TABINT;
+
+		
+BEGIN
+        imie := TABSTR('Tomek','Amika','Konrad','Monika','Aneta','Slawek','Stefan','Zdzislaw','Jola','Kamil','Stanislaw', 'Waldemar',
+					   'Marta','Sara','Wiktoria','Bartek','Maciek','Marek','Karol','Bogdan','Krzysztof'); --21
+        nazwisko := TABSTR('Wazniak','Wozniak','Radzil','Korida','Karkonot','Gawron','Borek','Strakulos','Zelma','Jakubik','Kawalec',
+						   'Pstrok','Wojtala','Konopko','Kononenko','Olman','Rygiel','Bednarz','Mordor','Bagins','Tomik'); --21
+        iter := 600;
+        adres_email := TABSTR('tomikot@onet.pl','karkonot23@onet.pl','aniko@pracuj.pl','gawron342ja@wp.pl','ankaKom@onet.pl',
+						'slawooo@wp.pl','stokklos55@interia.pl','zdzisioTak@gmail.com','JoLOLO@wp.pl','Fenom@gmail.com',
+						'Mork@wp.pl','Kawal@interia.pl','ewno@pracuj.pl','KWaKwe@gmail.com','ReReK123@wp.pl','WeroK492@wp.pl',
+						'Wro4Nek5@interia.pl','TegOOo4@gmail.com','DorKO34@wp.pl','LOko43@gmail.com');--20
+        miasto := TABSTR('Krakow','Warszawa','Leszno','Koszalin','Blonie','Grodno','Boza Wola','Kutno','Ilawa','Opole','Poznan',
+						 'Mielno','Kopytow','Grodzisk','Pruszkow');--15
+        kod_pocztowy := TABSTR('30-018','00-057','04-654','74-437','53-347','45-857','30-457','61-552','62-581','43-043',
+								'05-874','94-732','54-034','31-902','34-701');--15
+        ulica_zameldowania := TABSTR('Konopki','Armi Krajowej','Kwiatowa','Kazimierza Wielkiego','Mokra','Polna','Kmicica','Legionow','Akacjowa',
+						'Warszawska','3 Maja','Powstancow','Witkosa','Jana Pawla','Poznanska','Halera','Marszlkowska','Sloneczna','Zamkowa','Morska');--20
+        rabat := TABINT(0,0,1,2,3,5,0,1,3,5,0,0,1,10,0,0,0,0,1,2); --20
+        
+        FOR i IN 1..iter LOOP
+            pesel := dbms_random.value(10000000000,99999999999);
+            telefon := dbms_random.value(100000000,999999999);
+            pomoc := dbms_random.value(1,15);
+            
+            INSERT INTO Klient VALUES (NULL, imie(dbms_random.value(1,21)),nazwisko(dbms_random.value(1,21)),pesel,telefon,adres_email(dbms_random.value(1,20)),miasto(pomoc), kod_pocztowy(pomoc),ulica_zameldowania(dbms_random.value(1,20)), rabat(dbms_random.value(1,20)));
+        END LOOP;
+ 
+END NOWI_KLIENCI;
+
+
+create or replace PROCEDURE NOWE_REZERWACJE IS 
+    TYPE TABSTR IS TABLE OF integer;
+	iter NUMBER(5);
+	year NUMBER(4);
+	dates VARCHAR2(10);
+	startday NUMBER(5);
+    alldays NUMBER(4);
+	nr_rejestr varchar2(8);
+    any_rows_found NUMBER;
+	data_zwrot date;
+    
+BEGIN
+	iter := 70;
+	FOR i IN 1..iter LOOP
+		year := dbms_random.value(2018,2019);
+		startday := dbms_random.value(1,355);
+		dates := to_char(year) || to_char(startday,'999');
+        alldays := dbms_random.value(1,355);
+        SELECT count(*) into any_rows_found FROM Samochod WHERE Status = 'wolny' OR Status = 'uzywany'; 
+		
+        SELECT Nr_rejestracyjny into nr_rejestr FROM (SELECT * FROM (SELECT * FROM Samochod WHERE Status = 'wolny' OR Status = 'uzywany')ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+		SELECT Data_zwrotu into data_zwrot FROM Transakcja WHERE Nr_rejestracyjny = nr_rejestr and rownum = 1 ORDER BY Data_zwrotu DESC; 
+	
+        IF (to_date(dates,'yyyyddd') >= trunc(sysdate) and any_rows_found > 0 and data_zwrot <= to_date(dates,'yyyyddd'))then
+        
+		INSERT INTO Rezerwacja VALUES (NULL, (SELECT Id_klienta FROM (SELECT * FROM Klient ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+        nr_rejestr, to_date(dates,'yyyyddd'), alldays);
+        --INSERT INTO Rezerwacja VALUES (NULL,i,null , to_date(dates,'yyyyddd'), alldays);
+        end if;
+	END LOOP;
+END NOWE_REZERWACJE;
+
+
+
+
+create or replace PROCEDURE NOWE_TRANSAKCJE IS 
+    TYPE TABSTR IS TABLE OF varchar2(250);
+    year NUMBER(4);
+    startday NUMBER(5);
+	dates VARCHAR2(10);
+    year_return NUMBER(4);
+    dates_return VARCHAR2(10);
+    day_return NUMBER(5);
+    alldays NUMBER(4);
+    nr_rejestr varchar2(8);
+    localization NUMBER(10,0);
+    employee NUMBER(10,0);
+    any_rows_found NUMBER;
+    any_rows_found1 NUMBER;
+    iter NUMBER(5);
+   
+   
+BEGIN
+    iter := 3000;
+	FOR i IN 1..iter LOOP
+		year := dbms_random.value(2014,2018);
+		startday := dbms_random.value(1,355);
+		dates := to_char(year) || to_char(startday,'999');
+        alldays := dbms_random.value(1,180);
+        IF startday+alldays>355 then
+            year_return := year+1;
+            day_return := startday+alldays-355;
+        else
+            year_return := year;
+            day_return := startday+alldays;
+        end if;
+        dates_return := to_char(year_return) || to_char(day_return,'999');
+        
+        SELECT Nr_rejestracyjny into nr_rejestr FROM (SELECT * FROM Samochod ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+        SELECT Id_lokalizacji into localization FROM Samochod WHERE nr_rejestr = Nr_rejestracyjny;
+        SELECT Id_pracownika into employee FROM (SELECT * FROM (SELECT * FROM Pracownik WHERE Id_lokalizacji = localization)ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1;
+        
+        SELECT count(*) into any_rows_found FROM(SELECT * FROM Transakcja where 
+        EXISTS(SELECT Data_wypozyczenia,Data_zwrotu FROM Transakcja 
+          WHERE Nr_rejestracyjny = nr_rejestr AND (to_date(dates,'yyyyddd') 
+          BETWEEN Data_wypozyczenia AND Data_zwrotu)));
+          
+        SELECT count(*) into any_rows_found1 FROM(SELECT * FROM Transakcja where 
+        EXISTS(SELECT Data_wypozyczenia,Data_zwrotu FROM Transakcja 
+          WHERE Nr_rejestracyjny = nr_rejestr AND (to_date(dates_return,'yyyyddd') 
+          BETWEEN Data_wypozyczenia AND Data_zwrotu)));
+          
+        IF (to_date(dates,'yyyyddd') <= trunc(sysdate) AND any_rows_found = 0 AND any_rows_found1 = 0)then
+            
+		INSERT INTO Transakcja VALUES (null, nr_rejestr,
+        (SELECT Id_klienta FROM (SELECT * FROM Klient ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+        employee,
+        (SELECT Id_ubezpieczenia FROM (SELECT * FROM Ubezpieczenia ORDER BY DBMS_RANDOM.VALUE) WHERE ROWNUM = 1),
+        to_date(dates,'yyyyddd'),  to_date(dates_return,'yyyyddd'),null);
+        
+        end if;
+
+	END LOOP;
+END NOWE_TRANSAKCJE;

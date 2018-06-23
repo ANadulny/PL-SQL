@@ -1,0 +1,288 @@
+alter session set nls_date_format='DD/MM/YYYY';
+execute dbms_stats.gather_table_stats ('anadulny','Klient');
+execute dbms_stats.gather_table_stats ('anadulny','Transakcja');
+execute dbms_stats.gather_table_stats ('anadulny','Pracownik');
+execute dbms_stats.gather_table_stats ('anadulny','Rezerwacja');
+execute dbms_stats.gather_table_stats ('anadulny','Samochod');
+execute dbms_stats.gather_table_stats ('anadulny','Ubezpieczenia');
+execute dbms_stats.gather_table_stats ('anadulny','Lokalizacja');
+execute dbms_stats.gather_table_stats ('anadulny','Sam_model');
+
+
+-- multiple hash join
+-- 1)
+--I)
+explain plan for
+select k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+select *
+from table (dbms_xplan.display);
+
+
+-- /*+  use_merge(k,t)*/ 
+-- /*+  use_nl(k,t)*/ 
+-- /*+  use_hash(k,t)*/ 
+
+-- II)
+explain plan for
+select /*+  use_merge(k,t)*/  k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+select *
+from table (dbms_xplan.display);
+
+-- III)
+explain plan for
+select /*+  use_merge(k,t,s,p,m,l)*/  k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+select *
+from table (dbms_xplan.display);
+
+-- IV)
+explain plan for
+select /*+  use_nl(k,t)*/   k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+select *
+from table (dbms_xplan.display);
+
+-- V)
+explain plan for
+select /*+  use_nl(k,t,s,p,m,l)*/   k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+select *
+from table (dbms_xplan.display);
+
+
+-- hash join
+-- 2)
+-- I)
+explain plan for
+select k.*, t.*
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where k.Rabat > 2 and k.Nr_telefonu > 300000000 and k.Imie = 'Aneta' and t.Id_transakcji  between 100 and 600 
+	and k.Pesel between 40000000000 and 87000000000 and t.Id_pracownika > 30 and k.Miasto = 'Mielno'
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+
+-- II)
+explain plan for
+select /*+  use_merge(k,t)*/   k.*, t.*
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where k.Rabat > 2 and k.Nr_telefonu > 300000000 and k.Imie = 'Aneta' and t.Id_transakcji  between 100 and 600 
+        and k.Pesel between 40000000000 and 87000000000 and t.Id_pracownika > 30 and k.Miasto = 'Mielno'
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+
+-- III)
+explain plan for
+select /*+  use_nl(k,t)*/  k.*, t.*
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where k.Rabat > 2 and k.Nr_telefonu > 300000000 and k.Imie = 'Aneta' and t.Id_transakcji  between 100 and 600 
+        and k.Pesel between 40000000000 and 87000000000 and t.Id_pracownika > 30 and k.Miasto = 'Mielno'
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+-- hash join
+-- 3)
+-- I)
+explain plan for
+select k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji > (select avg(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+
+-- II)
+explain plan for
+select /*+  use_merge(k,t)*/  k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji > (select avg(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+
+-- III)
+explain plan for
+select /*+  use_nl(k,t)*/   k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji > (select avg(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+
+
+-- 4)
+-- merge join
+-- I)
+explain plan for
+select k.Id_klienta, t.Id_klienta, k.Imie, k.Nazwisko,k.Pesel 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where t.Data_wypozyczenia > sysdate - interval '1' year and k.Id_klienta < 190 and t.Id_klienta > 160
+and k.Pesel > 40000000000 and Nr_telefonu between 340000000 and 500000000
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+
+-- II)
+explain plan for
+select  /*+  use_hash(k,t)*/ k.Id_klienta, t.Id_klienta, k.Imie, k.Nazwisko,k.Pesel 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where t.Data_wypozyczenia > sysdate - interval '1' year and k.Id_klienta < 190 and t.Id_klienta > 160
+and k.Pesel > 40000000000 and Nr_telefonu between 340000000 and 500000000
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+
+-- III)
+explain plan for
+select  /*+  use_nl(k,t)*/  k.Id_klienta, t.Id_klienta, k.Imie, k.Nazwisko,k.Pesel 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where t.Data_wypozyczenia > sysdate - interval '1' year and k.Id_klienta < 190 and t.Id_klienta > 160
+and k.Pesel > 40000000000 and Nr_telefonu between 340000000 and 500000000
+order by t.Id_klienta;
+select *
+from table (dbms_xplan.display);
+
+-- 5)
+-- nested join
+-- I)
+
+explain plan for
+select k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji = (select max(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+
+-- II)
+explain plan for
+select /*+  use_merge(k,t)*/ k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji = (select max(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+
+-- III)
+explain plan for
+select /*+  use_hash(k,t)*/  k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji = (select max(Cena_transakcji) from  Transakcja);
+select *
+from table (dbms_xplan.display);
+
+-- 6)
+-- nested loops
+-- I)
+explain plan for
+select    r.Nr_rejestracyjny, t.Cena_transakcji, t.Data_zwrotu, t.Data_wypozyczenia
+from Rezerwacja r join Transakcja t
+on r.Nr_rejestracyjny = t.Nr_rejestracyjny
+where t.Cena_transakcji > 6000 and t.Data_zwrotu - t.Data_wypozyczenia > 100 
+order by t.Nr_rejestracyjny;
+select * 
+from table (dbms_xplan.display);
+
+--II)
+explain plan for
+select /*+  use_merge(r,t)*/    r.Nr_rejestracyjny, t.Cena_transakcji, t.Data_zwrotu, t.Data_wypozyczenia
+from Rezerwacja r join Transakcja t
+on r.Nr_rejestracyjny = t.Nr_rejestracyjny
+where t.Cena_transakcji > 6000 and t.Data_zwrotu - t.Data_wypozyczenia > 100 
+order by t.Nr_rejestracyjny;
+select * 
+from table (dbms_xplan.display);
+
+-- III)
+explain plan for
+select /*+  use_hash(r,t)*/   r.Nr_rejestracyjny, t.Cena_transakcji, t.Data_zwrotu, t.Data_wypozyczenia
+from Rezerwacja r join Transakcja t
+on r.Nr_rejestracyjny = t.Nr_rejestracyjny
+where t.Cena_transakcji > 6000 and t.Data_zwrotu - t.Data_wypozyczenia > 100 
+order by t.Nr_rejestracyjny;
+select * 
+from table (dbms_xplan.display);
+
+-- 7)
+-- nested loops
+-- I)
+explain plan for
+select s.Nr_rejestracyjny, s.Cena_za_dobe ,m.Id_modelu
+from Samochod s join Sam_model m 
+on s.Id_modelu=m.Id_modelu
+where m.Id_modelu > 25 and s.Cena_za_dobe > 90 and (m.Klasa_sam = 'A' or m.Klasa_sam = 'D')
+order by s.Nr_rejestracyjny;
+select *
+from table (dbms_xplan.display);
+
+--II)
+explain plan for
+select /*+  use_hash(s,m)*/ s.Nr_rejestracyjny, s.Cena_za_dobe ,m.Id_modelu
+from Samochod s join Sam_model m 
+on s.Id_modelu=m.Id_modelu
+where m.Id_modelu > 25 and s.Cena_za_dobe > 90 and (m.Klasa_sam = 'A' or m.Klasa_sam = 'D')
+order by s.Nr_rejestracyjny;
+select *
+from table (dbms_xplan.display);
+
+
+-- III)
+explain plan for
+select /*+  use_merge(s,m)*/  s.Nr_rejestracyjny, s.Cena_za_dobe ,m.Id_modelu
+from Samochod s join Sam_model m 
+on s.Id_modelu=m.Id_modelu
+where m.Id_modelu > 25 and s.Cena_za_dobe > 90 and (m.Klasa_sam = 'A' or m.Klasa_sam = 'D')
+order by s.Nr_rejestracyjny;
+select *
+from table (dbms_xplan.display);
+

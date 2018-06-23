@@ -1,0 +1,577 @@
+set serveroutput on format wrapped;
+set define off;
+
+/* KLIENT */
+DROP TABLE Klient cascade constraints;
+DROP SEQUENCE klient_seq;
+
+CREATE TABLE Klient(
+        Id_klienta              NUMBER(10,0),
+        Imie                    varchar2(100) NOT NULL,
+        Nazwisko                varchar2(120) NOT NULL,
+        Pesel                   NUMBER(11) NOT NULL,
+        Nr_telefonu             NUMBER(9) NOT NULL,
+        Adres_email             varchar2(60) NOT NULL,
+        Miasto                  varchar2(60) NOT NULL,
+        Kod_pocztowy            varchar2(6) NOT NULL,
+        Ulica_zameldowania      varchar2(80) NOT NULL,
+		Rabat                   INTEGER
+);  
+
+ALTER TABLE Klient ADD CONSTRAINT klienci_pk PRIMARY KEY(Id_klienta)USING INDEX;
+
+/*Tworzenie sekwencji klient_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE klient_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
+CREATE INDEX name_idx ON Klient (Imie);
+
+CREATE OR REPLACE TRIGGER klient_trg
+BEFORE INSERT ON Klient
+FOR EACH ROW
+BEGIN
+  :NEW.Id_klienta := klient_seq.NEXTVAL;
+END;
+/
+
+set serveroutput on
+exec nowi_klienci;
+commit;
+
+select * from Klient;
+
+
+
+/*SAMOCHOD WYPOSARZENIE*/
+DROP TABLE Sam_model cascade constraints;
+DROP SEQUENCE sam_model_seq;
+
+CREATE TABLE Sam_model(
+        Id_modelu               NUMBER(10,0),
+		Klasa_sam				varchar2(4) NOT NULL, 
+        Marka_sam               varchar2(50) NOT NULL,
+        Model_sam               varchar2(50) NOT NULL,
+        Silnik       			varchar2(40) NOT NULL,
+        Skrzynia_biegow			varchar2(30) NOT NULL,
+		Spalanie				varchar2(30) NOT NULL,
+		Liczba_drzwi			integer NOT NULL
+);  
+
+ALTER TABLE Sam_model ADD CONSTRAINT sam_model_pk PRIMARY KEY(Id_modelu);
+
+/*Tworzenie sekwencji sam_model_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE sam_model_seq;
+CREATE OR REPLACE TRIGGER sam_model_trg
+BEFORE INSERT ON Sam_model
+FOR EACH ROW
+BEGIN
+  :NEW.Id_modelu := sam_model_seq.NEXTVAL;
+END;
+/
+
+commit;
+
+/* ------------------------------------------------------- */
+/*						Dla Sam_model       				*/
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'A','Toyota','Yaris','benzyna','manualna','4,4litra/100km',3);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'A','Toyota','Aygo','benzyna','manualna','4,6litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'B+','Toyota','Yaris','benzyna','manualna','5,1litra/100km',4);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'b+','Ford','Fiesta','benzyna','manualna','5,1litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'B+','Skoda','Fabia','diesel','automatyczna','5,0litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'BA','Citroen','C3','benzyna','automatyczna','6,0litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C','Skoda','Rapid','benzyna TSI','manualna','4,5litra/100km',4);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C+','Skoda','Fabia Kombi','benzyna','manualna','5,0litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C+','Toyota','Auris Kombi','benzyna','manualna','6,1litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'D','Skoda','Octavia','ekonomiczny turbo TSI','manualna','4,6litra/100km',5);
+
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'A','Skoda','CitiGo','benzyna','manualna','4,5litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'B+','Hundai','i20','disel','manualna','4,9litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C','Ford','Focus Hatchback','benzyna','manualna','5,5litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C','Volkswagen','Golf','benzyna','manualna','6,3litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C','BMW','118i','benzyna','manualna','5,1litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'C','Mercedes','A180','benzyna','manualna','5,1litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'D+','Peugeot','508 Kombi/Sedan','diesel','manualna','6,0litra/100km',5);
+
+insert into Sam_model(Id_modelu,Klasa_sam,Marka_sam,Model_sam,Silnik,Skrzynia_biegow,Spalanie,Liczba_drzwi)
+values(null,'DA+','Volkswagen','Passat','diesel','manualna','7,5litra/100km',5);
+
+
+commit;
+
+select * from Sam_model;
+
+
+/* LOKALIZACJA	*/
+/*wypozyczalni samochodow*/
+
+DROP TABLE Lokalizacja cascade constraints;
+DROP SEQUENCE lokalizacja_seq;
+
+CREATE TABLE Lokalizacja(
+        Id_lokalizacji              NUMBER(10,0),
+        Miasto						varchar2(50)NOT NULL,
+		Kod_pocztowy_lok			varchar2(8)NOT NULL
+);  
+
+ALTER TABLE Lokalizacja ADD CONSTRAINT lokalizacja_pk PRIMARY KEY(Id_lokalizacji);
+
+/*Tworzenie sekwencji lokalizacja_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE lokalizacja_seq;
+CREATE OR REPLACE TRIGGER lokalizacja_trg
+BEFORE INSERT ON Lokalizacja
+FOR EACH ROW
+BEGIN
+  :NEW.Id_lokalizacji := lokalizacja_seq.NEXTVAL;
+END;
+/
+
+commit;
+
+/* ------------------------------------------------------- */
+/*						 Dla Lokalizacji 					*/
+
+insert into Lokalizacja(Id_lokalizacji,Miasto,Kod_pocztowy_lok)
+values(null,'Warszawa','00-057');
+
+insert into Lokalizacja(Id_lokalizacji,Miasto,Kod_pocztowy_lok)
+values(null,'Krakow','21-231');
+
+insert into Lokalizacja(Id_lokalizacji,Miasto,Kod_pocztowy_lok)
+values(null,'Poznan','37-131');
+
+insert into Lokalizacja(Id_lokalizacji,Miasto,Kod_pocztowy_lok)
+values(null,'Lodz','57-325');
+
+commit;
+
+select * from Lokalizacja;
+
+
+set serveroutput on format wrapped;
+set define off;
+/*SAMOCHOD*/
+DROP TABLE Samochod cascade constraints;
+
+CREATE TABLE Samochod(
+        Nr_rejestracyjny        varchar2(8) NOT NULL,
+        Id_lokalizacji          NUMBER(10,0) NOT NULL,
+		Id_modelu               NUMBER(10,0) NOT NULL,
+		Rok_produkcji			date NOT NULL,
+		Cena_za_dobe            integer NOT NULL,
+        Status                  varchar2(20) NOT NULL,
+        Kolor_sam            	varchar2(30)
+        
+);  
+--w status podac mozliwosci uszkodzony, zarezerwowany, wolny
+
+ALTER TABLE Samochod ADD CONSTRAINT samochod_pk PRIMARY KEY(Nr_rejestracyjny);
+ALTER TABLE Samochod ADD CONSTRAINT samochod_lokalizacja_fk FOREIGN KEY(Id_lokalizacji) REFERENCES Lokalizacja(Id_lokalizacji);
+ALTER TABLE Samochod ADD CONSTRAINT samochod_model_fk FOREIGN KEY(Id_modelu) REFERENCES Sam_model(Id_modelu);
+
+
+create or replace TRIGGER samochod_update_trg
+BEFORE INSERT OR UPDATE ON Samochod
+FOR EACH ROW
+BEGIN
+    if :NEW.Status <> 'uzywany' and :NEW.Status <> 'zarezerwowany' and :NEW.Status <> 'wolny' and :NEW.Status <> 'zajety' then
+        RAISE_APPLICATION_ERROR(-20000,'INVALID Data into Samochod. Stan w jakim moze byc samochod odpowiada tylko pozycja: uzywany, zarezerwowany, wolny, zajety!');
+    end if;
+END;
+/
+
+set serveroutput on
+exec nowe_samochody;
+commit;
+--INSERT INTO Samochod VALUES ('123AD43', 1, 7, 9, '04/04/2019', 107, 'wolny','fiolet');
+        
+--select * from Samochod;
+
+
+set serveroutput on format wrapped;
+set define off;
+
+/* ------------------------------------------------------- */
+/* PRACOWNIK */
+/* kiedy pozostanie tablica lokalizacja to trzeba bedzie dodac i tutaj lokalizacje*/
+DROP TABLE Pracownik cascade constraints;
+DROP SEQUENCE pracownik_seq;
+
+CREATE TABLE Pracownik(
+        Id_pracownika       NUMBER(10,0),
+        Id_lokalizacji      NUMBER(10,0) NOT NULL,
+        Imie				varchar2(50),
+		Nazwisko			varchar2(50),
+		Nr_telefonu			NUMBER(9)
+);  
+
+ALTER TABLE Pracownik ADD CONSTRAINT pracownik_pk PRIMARY KEY(Id_pracownika) USING INDEX;
+ALTER TABLE Pracownik ADD CONSTRAINT pracownik_lokalizacja_fk FOREIGN KEY(Id_lokalizacji) REFERENCES Lokalizacja(Id_lokalizacji);
+/*Tworzenie sekwencji pracownik_seq i trigera inkrementuj¹cego klucz g³ówny*/
+
+CREATE SEQUENCE pracownik_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
+CREATE INDEX pracownik_idx ON Pracownik (Imie);
+
+CREATE OR REPLACE TRIGGER pracownik_trg
+BEFORE INSERT ON Pracownik
+FOR EACH ROW
+BEGIN
+  :NEW.Id_pracownika := pracownik_seq.NEXTVAL;
+END;
+/
+
+set serveroutput on
+exec nowi_pracownicy;
+
+commit;
+select * from Pracownik;
+
+/* UBEZPIECZENIE*/
+DROP TABLE Ubezpieczenia cascade constraints;
+DROP SEQUENCE ubezpieczenia_seq;
+
+CREATE TABLE Ubezpieczenia(
+        Id_ubezpieczenia            NUMBER(10,0),
+        Typ_ubezpieczenia			varchar2(40) NOT NULL,
+		Koszt_ubezpieczenia			integer
+); 
+
+ALTER TABLE Ubezpieczenia ADD CONSTRAINT ubezpieczenia_pk PRIMARY KEY(Id_ubezpieczenia);
+
+
+/*Tworzenie sekwencji ubezpieczenia_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE ubezpieczenia_seq;
+CREATE OR REPLACE TRIGGER ubezpieczenia_trg
+BEFORE INSERT ON Ubezpieczenia
+FOR EACH ROW
+BEGIN
+  :NEW.Id_ubezpieczenia := ubezpieczenia_seq.NEXTVAL;
+END;
+/ 
+
+commit;
+
+/* ------------------------------------------------------- */
+/*						Dla Ubezpieczen      				*/
+
+insert into Ubezpieczenia(Id_ubezpieczenia,Typ_ubezpieczenia,Koszt_ubezpieczenia)
+values(null,'OC',170);
+
+insert into Ubezpieczenia(Id_ubezpieczenia,Typ_ubezpieczenia,Koszt_ubezpieczenia)
+values(null,'AC',220);
+
+insert into Ubezpieczenia(Id_ubezpieczenia,Typ_ubezpieczenia,Koszt_ubezpieczenia)
+values(null,'Assistance',200);
+
+insert into Ubezpieczenia(Id_ubezpieczenia,Typ_ubezpieczenia,Koszt_ubezpieczenia)
+values(null,'NNW',150);
+
+commit;
+
+select * from Ubezpieczenia;
+
+
+--///////////////////////////
+--  REZERWACJA CZESC
+DROP TABLE Rezerwacja cascade constraints;
+DROP SEQUENCE rezerwacja_seq;
+
+CREATE TABLE Rezerwacja(
+        Id_rezerwacji              NUMBER(10,0),
+        Id_klienta                 NUMBER(10,0),
+        Nr_rejestracyjny           varchar2(8) UNIQUE NOT NULL,
+        Data_rezerwacji      	   date NOT NULL, 
+		Liczba_dni_rezerwacji      integer NOT NULL 
+);  
+
+alter session set nls_date_format='DD/MM/YYYY';
+ALTER TABLE Rezerwacja ADD CONSTRAINT rezerwacja_pk PRIMARY KEY(Id_rezerwacji) USING INDEX;
+ALTER TABLE Rezerwacja ADD CONSTRAINT klient_fk FOREIGN KEY(Id_klienta) REFERENCES Klient(Id_klienta);
+ALTER TABLE Rezerwacja ADD CONSTRAINT samochod_fk FOREIGN KEY(Nr_rejestracyjny) REFERENCES Samochod(Nr_rejestracyjny);
+
+
+--////////////////////////////
+
+set serveroutput on format wrapped;
+set define off;
+/*TRANSAKCJA*/
+DROP TABLE Transakcja cascade constraints;
+DROP SEQUENCE transakcja_seq;
+
+CREATE TABLE Transakcja(
+        Id_transakcji               NUMBER(10,0),
+        Nr_rejestracyjny            varchar2(8) NOT NULL,
+        Id_klienta                  NUMBER(10,0) NOT NULL,
+        Id_pracownika               NUMBER(10,0) NOT NULL,
+		Id_ubezpieczenia            NUMBER(10,0) NOT NULL,
+        Data_wypozyczenia			date NOT NULL,
+		Data_zwrotu					date NOT NULL,
+		Cena_transakcji				integer NOT NULL
+);  
+
+--Select Data_zwrotu - Data_wypozyczenia total_days from Transakcja;
+
+ALTER TABLE Transakcja ADD CONSTRAINT transakcja_pk PRIMARY KEY(Id_transakcji);
+ALTER TABLE Transakcja ADD CONSTRAINT samochod_transakcja_fk FOREIGN KEY(Nr_rejestracyjny) REFERENCES Samochod(Nr_rejestracyjny);
+ALTER TABLE Transakcja ADD CONSTRAINT transakcja_klienta_fk FOREIGN KEY(Id_klienta) REFERENCES Klient(Id_klienta);
+ALTER TABLE Transakcja ADD CONSTRAINT pracownik_fk FOREIGN KEY(Id_pracownika) REFERENCES Pracownik(Id_pracownika);
+ALTER TABLE Transakcja ADD CONSTRAINT ubezpieczenie_fk FOREIGN KEY(Id_ubezpieczenia) REFERENCES Ubezpieczenia(Id_ubezpieczenia);
+
+
+
+/*Tworzenie sekwencji transakcja_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE transakcja_seq;
+CREATE OR REPLACE TRIGGER transakcja_trg
+BEFORE INSERT ON Transakcja
+FOR EACH ROW
+BEGIN
+  :NEW.Id_transakcji := transakcja_seq.NEXTVAL;
+END;
+/
+
+create or replace TRIGGER transakcja1_trg
+BEFORE INSERT OR UPDATE ON Transakcja
+FOR EACH ROW
+  DECLARE
+  rabat integer;
+  ubezp_cena integer;
+  sam_cena integer;
+BEGIN
+   SELECT Rabat INTO rabat FROM Klient where :NEW.Id_klienta = Id_klienta;
+   SELECT Koszt_ubezpieczenia INTO ubezp_cena FROM Ubezpieczenia where :NEW.Id_ubezpieczenia = Id_ubezpieczenia;
+   SELECT Cena_za_dobe INTO sam_cena FROM Samochod where :NEW.Nr_rejestracyjny = Nr_rejestracyjny;
+   
+   :NEW.Cena_transakcji := (1 - rabat / 100) * sam_cena * (:NEW.Data_zwrotu - :NEW.Data_wypozyczenia + 1) + ubezp_cena; 
+END;
+/
+
+
+create or replace TRIGGER transakcja_daty_trg
+BEFORE INSERT OR UPDATE ON Transakcja
+FOR EACH ROW
+DECLARE
+    any_rows_found number;
+BEGIN
+IF :NEW.Data_wypozyczenia > trunc(sysdate) THEN
+      RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Transakcja. Data wypozyczenia nie moze byc wieksza od obecnej daty');
+end if;
+
+SELECT count(*) into any_rows_found FROM(SELECT * FROM Transakcja where EXISTS(SELECT Data_wypozyczenia,Data_zwrotu FROM Transakcja 
+          WHERE Nr_rejestracyjny = :NEW.Nr_rejestracyjny AND (:NEW.Data_wypozyczenia BETWEEN Data_wypozyczenia AND Data_zwrotu))) WHERE rownum = 1;
+if any_rows_found >0 THEN
+      RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Transakcja. Data wypozyczenia nachodzi na wczesniejsze wypozyczenie!');
+end if;
+
+
+SELECT count(*) into any_rows_found FROM(SELECT * FROM Transakcja where EXISTS(SELECT Data_wypozyczenia,Data_zwrotu FROM Transakcja 
+          WHERE Nr_rejestracyjny = :NEW.Nr_rejestracyjny AND (:NEW.Data_zwrotu BETWEEN Data_wypozyczenia AND Data_zwrotu))) WHERE rownum = 1;
+if any_rows_found >0 THEN
+      RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Transakcja. Data zwrotu nachodzi na wczesniejsze wypozyczenie!');
+end if;
+
+SELECT count(*) into any_rows_found FROM(SELECT * FROM Rezerwacja where EXISTS(SELECT Data_rezerwacji FROM Rezerwacja 
+          WHERE Nr_rejestracyjny = :NEW.Nr_rejestracyjny AND :NEW.Data_zwrotu > Data_rezerwacji)) WHERE rownum = 1;
+if any_rows_found >0 THEN
+      RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Transakcja. Data zwrotu nachodzi na rezerwacje danego samochodu!');
+end if;
+
+END;
+/
+
+
+create or replace TRIGGER transakcja_pracownik_trg
+BEFORE INSERT OR UPDATE ON Transakcja
+FOR EACH ROW
+DECLARE
+    carLocalization NUMBER(10,0);
+    empLocalization NUMBER(10,0);
+BEGIN
+    SELECT Id_lokalizacji into carLocalization FROM Samochod WHERE :NEW.Nr_rejestracyjny = Nr_rejestracyjny;
+    SELECT Id_lokalizacji into empLocalization FROM Pracownik WHERE :NEW.Id_pracownika = Id_pracownika;
+    
+    IF empLocalization <> carLocalization THEN
+      RAISE_APPLICATION_ERROR(-20000,'INVALID Data into Transakcja. Pracownik chce sprzedac samochod z nie swoj lokalizacji!');
+    end if;
+END;
+/
+
+
+
+create or replace TRIGGER trans_update_sam_trg
+BEFORE UPDATE ON Transakcja
+FOR EACH ROW
+DECLARE
+    any_rows_found number;
+BEGIN
+    if :NEW.Nr_rejestracyjny <> :OLD.Nr_rejestracyjny then
+        RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Transakcja. Modyfikowanie transakcji nie uwzglednia zmiany samochodu!');
+    end if;
+END;
+/
+
+
+create or replace TRIGGER transakcja_update_sam_trg
+AFTER INSERT OR UPDATE ON Transakcja
+FOR EACH ROW
+BEGIN
+IF INSERTING THEN  
+  if :NEW.Data_zwrotu >= trunc(sysdate) then
+    UPDATE Samochod SET Status='uzywany' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='wolny';
+    UPDATE Samochod SET Status='zajety' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='zarezerwowany';
+  end if;
+ELSIF UPDATING THEN   
+   if :NEW.Data_zwrotu < trunc(sysdate) then
+    UPDATE Samochod SET Status='wolny' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='uzywany';
+    UPDATE Samochod SET Status='zarezerwowany' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='zajety';
+  end if;
+END IF;
+END;
+/
+
+--SELECT * FROM Transakcja WHERE Nr_rejestracyjny = 'AB93331' AND ('11/12/2016' BETWEEN Data_wypozyczenia AND Data_zwrotu);
+
+set serveroutput on
+exec nowe_transakcje;
+commit;
+
+select * from Transakcja;
+
+
+
+--UPDATE Rezerwacja SET Nr_rejestracyjny='AA11234' WHERE Id_rezerwacji=1; 
+--select * from Rezerwacja;
+--INSERT INTO Transakcja VALUES (null, 'AA11234',13,14,3,'28/05/2018','11/01/2019',500,null);
+        
+
+--/////////////////////////////////////////////////////////////////////
+set serveroutput on format wrapped;
+set define off;
+/* REZERWACJA	*/
+
+/*
+DROP TABLE Rezerwacja cascade constraints;
+DROP SEQUENCE rezerwacja_seq;
+
+CREATE TABLE Rezerwacja(
+        Id_rezerwacji              NUMBER(10,0),
+        Id_klienta                 NUMBER(10,0),
+        Nr_rejestracyjny           varchar2(8) UNIQUE,
+        Data_rezerwacji      	   date NOT NULL, 
+		Liczba_dni_rezerwacji      integer NOT NULL 
+);  
+
+alter session set nls_date_format='DD/MM/YYYY';
+ALTER TABLE Rezerwacja ADD CONSTRAINT rezerwacja_pk PRIMARY KEY(Id_rezerwacji) USING INDEX;
+ALTER TABLE Rezerwacja ADD CONSTRAINT klient_fk FOREIGN KEY(Id_klienta) REFERENCES Klient(Id_klienta);
+ALTER TABLE Rezerwacja ADD CONSTRAINT samochod_fk FOREIGN KEY(Nr_rejestracyjny) REFERENCES Samochod(Nr_rejestracyjny);
+*/
+
+/*Tworzenie sekwencji rezerwacja_seq i trigera inkrementuj¹cego klucz g³ówny*/
+CREATE SEQUENCE rezerwacja_seq START WITH 1 INCREMENT BY 1 NOMAXVALUE;
+CREATE INDEX rezerwacja_idx ON Rezerwacja (Data_rezerwacji);
+
+CREATE OR REPLACE TRIGGER rezerwacja_trg
+BEFORE INSERT ON Rezerwacja
+FOR EACH ROW
+BEGIN
+  SELECT rezerwacja_seq.nextval INTO :new.Id_rezerwacji FROM dual;
+END;
+/
+
+--drop TRIGGER rezerwacja_zle_daty_trg;
+
+create or replace TRIGGER rezerwacja_zle_daty_trg
+BEFORE INSERT OR UPDATE ON Rezerwacja
+FOR EACH ROW
+DECLARE
+    data_zwrot date;
+BEGIN
+
+    IF trunc(sysdate) > :NEW.Data_rezerwacji  THEN
+    RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Rezerwacja. Data rezerwacji nie moze byc wieksza od obecnej daty');
+    end if;
+    
+    
+    SELECT Data_zwrotu into data_zwrot FROM Transakcja WHERE Nr_rejestracyjny = :NEW.Nr_rejestracyjny and rownum = 1 ORDER BY Data_zwrotu DESC; 
+	IF :NEW.Data_rezerwacji < data_zwrot THEN
+    RAISE_APPLICATION_ERROR(-20000,'INVALID Date into Rezerwacja. Data rezerwacji nie moze nachodzic na obecnie juz uzywany samochod!');
+    end if;
+    
+    
+    if :OLD.Nr_rejestracyjny <> :NEW.Nr_rejestracyjny then
+    UPDATE Samochod SET Status='zarezerwowany' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='wolny';
+    UPDATE Samochod SET Status='zajety' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='uzywany';
+    end if;
+END;
+/
+
+
+create or replace TRIGGER rezerwacja_update_sam_trg
+AFTER INSERT OR UPDATE OR DELETE ON Rezerwacja
+FOR EACH ROW
+BEGIN
+IF INSERTING THEN  
+    UPDATE Samochod SET Status='zarezerwowany' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='wolny';
+    UPDATE Samochod SET Status='zajety' WHERE Nr_rejestracyjny=:NEW.Nr_rejestracyjny AND Status='uzywany';
+    IF trunc(sysdate) = :NEW.Data_rezerwacji THEN
+    dbms_output.put_line  ('Rezerwacje o id: ' || :NEW.Id_rezerwacji || ' mozna porzeniesc do transakcji'); 
+    end if;
+    
+ELSIF UPDATING THEN 
+    if :OLD.Nr_rejestracyjny <> :NEW.Nr_rejestracyjny then
+        UPDATE Samochod SET Status='wolny' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='zarezerwowany';
+        UPDATE Samochod SET Status='uzywany' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='zajety';
+    end if;
+    IF trunc(sysdate) = :NEW.Data_rezerwacji THEN
+    dbms_output.put_line  ('Rezerwacje o id: ' || :NEW.Id_rezerwacji || ' mozna porzeniesc do transakcji'); 
+    end if;
+ELSIF DELETING THEN
+    UPDATE Samochod SET Status='wolny' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='zarezerwowany';
+    UPDATE Samochod SET Status='uzywany' WHERE Nr_rejestracyjny=:OLD.Nr_rejestracyjny AND Status='zajety';
+END IF;
+END;
+/
+
+set serveroutput on
+exec nowe_rezerwacje;
+commit;
+
+
+--DELETE FROM Rezerwacja where Nr_rejestracyjny = 'TGY7377';
+--INSERT INTO Rezerwacja VALUES (NULL, 4 , 'TGY7377', '30/05/2018', 35);
+
+select * from Rezerwacja;
+
+
+select * from Samochod;

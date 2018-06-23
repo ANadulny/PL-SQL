@@ -1,0 +1,92 @@
+
+
+EXECUTE DBMS_STATS.GATHER_TABLE_STATS ('anadulny','Klient');
+
+-- INDEXY
+drop index name_idx;
+CREATE INDEX name_idx ON Klient (Id_klienta,Imie,Nazwisko);
+drop index name_idx2;
+CREATE INDEX name_idx2 ON Klient (Id_klienta,Imie,Pesel);
+drop index name_idx3;
+CREATE INDEX name_idx3 ON Klient (Pesel);
+drop index name_idx4;
+CREATE INDEX name_idx4 ON Klient (Id_klienta,Nazwisko,Rabat);
+
+alter index name_idx visible;
+alter index name_idx2 visible;
+alter index name_idx3 visible;
+alter index name_idx4 visible;
+-- 1)
+explain plan for
+select Id_klienta from Klient where Id_klienta between 1 and 359 order by 1;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Id_klienta between 1 and 359 order by 1;
+
+explain plan for
+select Id_klienta from Klient where Id_klienta between 1 and 360 order by 1;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Id_klienta between 1 and 360 order by 1;
+
+
+--2)
+explain plan for
+select Imie,Nazwisko from Klient where Imie = 'Tomek' and Nazwisko = 'Karkonot' and Id_klienta between 1 and 163;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Imie = 'Tomek' and Nazwisko = 'Karkonot' and Id_klienta between 1 and 163;
+
+explain plan for
+select Imie,Nazwisko from Klient where Imie = 'Tomek' and Nazwisko = 'Karkonot' and Id_klienta between 1 and 164;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Imie = 'Tomek' and Nazwisko = 'Karkonot' and Id_klienta between 1 and 164;
+
+
+
+
+-- 3)
+
+
+explain plan for
+select Nazwisko from Klient where Nazwisko like '%niak' and  Rabat between 0 and 5 and Id_klienta between 1 and 179;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Nazwisko like '%niak' and  Rabat between 0 and 5 and Id_klienta between 1 and 179;
+
+explain plan for
+select Nazwisko from Klient where Nazwisko like '%niak' and  Rabat between 0 and 5 and Id_klienta between 1 and 180;
+select *
+from table (dbms_xplan.display);
+select count(*)/600 from Klient where Nazwisko like '%niak' and  Rabat between 0 and 5 and Id_klienta between 1 and 180;
+
+-- others 
+-- 1)
+explain plan for
+select Imie,Nazwisko from Klient where Imie = 'Tomek' and Nazwisko = 'Wazniak' and 
+    Pesel between 23823437594 and 24295141560;
+select *
+from table (dbms_xplan.display);
+
+
+explain plan for
+select Imie,Nazwisko from Klient where Imie = 'Tomek' and Nazwisko = 'Wazniak' and 
+    Pesel between 23823437593 and 24295141560;
+select *
+from table (dbms_xplan.display);
+
+-- 2)
+explain plan for
+select Imie,Nazwisko,Rabat from Klient where Imie = 'Adam' and Nazwisko = 'Karkonot' and Rabat > 1;
+select *
+from table (dbms_xplan.display);
+
+-- 3)
+explain plan for
+select Imie,Nazwisko from Klient where Imie = 'Tomek' and Nazwisko = 'Karkonot';
+select *
+from table (dbms_xplan.display);
+
+select *
+from Klient;

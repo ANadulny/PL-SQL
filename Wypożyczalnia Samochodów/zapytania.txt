@@ -1,0 +1,150 @@
+Select * From Klient;
+Select Id_klienta, Imie, Nazwisko From Klient;
+Select count(*) from Klient;
+
+Select k.Imie, k.Nazwisko, k.Rabat, k.Id_klienta, r.Id_klienta, r.Nr_rejestracyjny, r.Data_rezerwacji, r.Liczba_dni_rezerwacji
+From Klient k ,Rezerwacja r
+Where k.Id_klienta = r.Id_klienta
+Order by 4,5;
+
+select k.Imie, k.Nazwisko, k.Rabat, r.Nr_rejestracyjny, r.Data_rezerwacji
+From Klient k join Rezerwacja r
+on k.Id_klienta = r.Id_klienta
+order by k.Imie, k.Nazwisko, r.Data_rezerwacji;
+
+alter session set nls_date_format='DD/MM/YYYY';
+
+select k.Imie, k.Nazwisko, k.Rabat, r.Data_rezerwacji, r.Liczba_dni_rezerwacji, s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe, m.Marka_sam, m.Model_sam, m.Klasa_sam
+from Klient k join Rezerwacja r
+on k.Id_klienta = r.Id_klienta
+join Samochod s on r.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Sam_model m on s.Id_modelu=m.Id_modelu
+order by k.Imie, k.Nazwisko;
+
+
+select k.Imie, k.Nazwisko, k.Rabat, r.Data_rezerwacji, r.Liczba_dni_rezerwacji, s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe, m.Marka_sam, m.Model_sam, m.Klasa_sam
+from Klient k join Rezerwacja r
+on k.Id_klienta = r.Id_klienta
+join Samochod s on r.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Sam_model m on s.Id_modelu=m.Id_modelu
+order by k.Imie, k.Nazwisko;
+
+select k.Imie, k.Nazwisko, r.Data_rezerwacji, (r.Data_rezerwacji+r.Liczba_dni_rezerwacji) as Koniec_rezerwacji, m.Marka_sam, m.Model_sam, m.Klasa_sam, s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe, k.Rabat,(s.Cena_za_dobe*r.Liczba_dni_rezerwacji) as Cena_rezerwacji, trunc((s.Cena_za_dobe*r.Liczba_dni_rezerwacji)*(1-k.Rabat/100)) as Cena_rezerwacji_z_rabatem 
+from Klient k join Rezerwacja r
+on k.Id_klienta = r.Id_klienta
+join Samochod s on r.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Sam_model m on s.Id_modelu=m.Id_modelu
+order by k.Imie, k.Nazwisko;
+
+select k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, t.Id_transakcji as Numer_transakcji, t.Data_wypozyczenia, t.Data_zwrotu, t.Nr_rejestracyjny, s.Nr_rejestracyjny,m.Marka_sam, m.Model_sam, m.Klasa_sam,  p.Imie || ' ' || p.Nazwisko as Pracownik, l.Miasto As Miejsce_transakcji, t.Cena_transakcji 
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+join Samochod s on t.Nr_rejestracyjny=s.Nr_rejestracyjny
+join Pracownik p on t.Id_pracownika=p.Id_pracownika
+join Sam_model m on s.Id_modelu=m.Id_modelu
+join Lokalizacja l on s.Id_lokalizacji=l.Id_lokalizacji
+order by k.Imie, k.Nazwisko, t.Data_wypozyczenia;
+
+
+select count(*) from Klient;
+
+select count(Id_klienta) as Liczba_transakcji
+from Transakcja;
+
+select k.Id_klienta, k.Imie || ' ' ||k.Nazwisko as Klient_dane_osobowe, count(*) as Liczba_transakcji
+from Klient k,Transakcja t 
+where t.Id_klienta=k.Id_klienta
+GROUP BY k.Imie || ' ' ||k.Nazwisko, k.Id_klienta
+ORDER BY Liczba_transakcji DESC;
+
+
+select count(*)
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where t.Data_wypozyczenia > sysdate - interval '1' year;
+
+select k.Imie, k.Nazwisko, t.id_transakcji, t.Data_wypozyczenia
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+where t.Data_wypozyczenia > sysdate - interval '1' year;
+
+--ze wszystkich
+select max(t.Cena_transakcji) as Najwiekszy_koszt_transakcji
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta;
+
+select max(t.Cena_transakcji) as Najwiekszy_koszt_transakcji
+from  Transakcja t;
+
+--dla kazdej osoby
+select k.imie, k.Nazwisko, max(t.Cena_transakcji)as Najwiekszy_koszt
+from Klient k join Transakcja t
+on k.Id_klienta = t.Id_klienta
+group by  k.imie, k.Nazwisko;
+
+select k.imie, k.Nazwisko, max(t.Cena_transakcji)as Najwiekszy_koszt
+from Klient k left join Transakcja t
+on k.Id_klienta = t.Id_klienta
+group by  k.imie, k.Nazwisko;
+
+
+-- klient z najwieksza transakcja
+select k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji = (select max(Cena_transakcji) from  Transakcja);
+
+select avg(Cena_transakcji) from  Transakcja;
+select trunc(avg(Cena_transakcji)) from  Transakcja;
+
+select k.imie || ' ' || k.Nazwisko as Klient, t.* 
+from Klient k, Transakcja t
+WHERE k.Id_klienta = t.Id_klienta 
+AND t.Cena_transakcji > (select avg(Cena_transakcji) from  Transakcja);
+
+--srednie koszty z transakcji na klienta
+select k.imie || ' ' || k.Nazwisko as Klient, 
+    (select nvl(trunc(avg(t.Cena_transakcji)),0) FROM Transakcja t 
+        WHERE k.Id_klienta = t.Id_klienta) 
+       as srednia_cena  
+from Klient k 
+order by srednia_cena desc;
+
+select s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe, m.Marka_sam, m.Model_sam, m.Klasa_sam,COUNT(DISTINCT r.Id_Rezerwacji)as Liczba_rezerwacji_sam
+from Samochod s join Sam_model m 
+on s.Id_modelu=m.Id_modelu
+left join Rezerwacja r
+on s.Nr_rejestracyjny = r.Nr_rejestracyjny
+GROUP BY s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe,m.Marka_sam, m.Model_sam, m.Klasa_sam
+order by s.Nr_rejestracyjny;
+
+select s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe, m.Marka_sam, m.Model_sam, m.Klasa_sam,COUNT(DISTINCT t.Id_transakcji)as Liczba_transakcji_sam
+from Samochod s join Sam_model m 
+on s.Id_modelu=m.Id_modelu
+left join Transakcja t
+on s.Nr_rejestracyjny = t.Nr_rejestracyjny
+GROUP BY s.Nr_rejestracyjny, s.Status, s.Cena_za_dobe,m.Marka_sam, m.Model_sam, m.Klasa_sam
+order by s.Nr_rejestracyjny;
+
+select count(*) from Sam_model;
+select * from Sam_model;
+
+select count(*) from Lokalizacja;
+select * from Lokalizacja;
+
+select count(*) from Ubezpieczenia;
+select * from Ubezpieczenia;
+
+select u.Typ_ubezpieczenia, COUNT(DISTINCT t.Id_transakcji)as Liczba_wykorzystan
+from Ubezpieczenia u left join Transakcja t
+on u.Id_ubezpieczenia=t.Id_ubezpieczenia
+GROUP BY u.Typ_ubezpieczenia;
+
+--sprawdzenie czy obecnie jest rezerwacja na sam i byla kiedys na niego transakcja
+select m.Marka_sam, m.Model_sam,s.Nr_rejestracyjny,s.Status
+from Sam_model m join Samochod s
+on m.Id_modelu=s.Id_modelu
+where s.Nr_rejestracyjny in(select r.Nr_rejestracyjny from Rezerwacja r, Transakcja t where r.Nr_rejestracyjny = t.Nr_rejestracyjny);
+
+select * from Transakcja order by Nr_rejestracyjny;
+select * from Rezerwacja order by Nr_rejestracyjny;
